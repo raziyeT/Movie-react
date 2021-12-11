@@ -19,7 +19,6 @@ class Movies extends React.Component {
 
   componentDidMount() {
     const genres = [{ _id: "", name: "All Genres" }, ...getGenres()];
-
     this.setState({
       movies: getMovies(),
       genres: genres,
@@ -55,8 +54,7 @@ class Movies extends React.Component {
     this.setState({ sortColumn });
   };
 
-  render() {
-    const { length: movieCount } = this.state.movies;
+  getpageData = () => {
     const {
       pageSize,
       currentPage,
@@ -64,8 +62,6 @@ class Movies extends React.Component {
       selectedGenre,
       sortColumn,
     } = this.state;
-
-    if (movieCount === 0) return <p>There is no movie in dataBase</p>;
 
     const filtered =
       selectedGenre && selectedGenre._id //if both are truth then run rest of codes//
@@ -75,6 +71,17 @@ class Movies extends React.Component {
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
 
     const movies = paginate(sorted, currentPage, pageSize);
+
+    return { totalCount: filtered.length, data: movies };
+  };
+
+  render() {
+    const { length: movieCount } = this.state.movies;
+    const { pageSize, currentPage, sortColumn } = this.state;
+
+    if (movieCount === 0) return <p>There is no movie in dataBase</p>;
+
+    const { totalCount, data: movies } = this.getpageData();
 
     return (
       <div className="row">
@@ -87,7 +94,7 @@ class Movies extends React.Component {
         </div>
 
         <div className="col right">
-          <p>There is {filtered.length} Movies</p>
+          <p>There is {totalCount} Movies</p>
           <MoviesTable
             movies={movies}
             sortColumn={sortColumn}
@@ -96,7 +103,7 @@ class Movies extends React.Component {
             onDelete={this.handleDelete}
           />
           <Pagination
-            itemsCount={filtered.length}
+            itemsCount={totalCount}
             pageSize={pageSize}
             currentPage={currentPage}
             onPageChange={this.handleChangePage}
