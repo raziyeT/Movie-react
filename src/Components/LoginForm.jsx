@@ -3,10 +3,7 @@ import Input from "./Common/Input";
 class LoginForm extends Component {
   state = {
     account: { username: "", password: "" },
-    errors: {
-      // username: "username not found",
-      // password: "you should inter password",
-    },
+    errors: {},
   };
 
   username = React.createRef();
@@ -30,19 +27,37 @@ class LoginForm extends Component {
     // const uername = this.username.current.value;
     const errors = this.validate();
     console.log("erroes", errors);
-    this.setState({ errors });
+    this.setState({ errors: errors || {} }); //errors should never be null
     if (errors) return;
   };
 
-  handleChange = (e) => {
+  validateProperty = (input) => {
+    if( input.name === "username"){
+      if(input.value.trim() === "") return "username is required";
+    }
+      if( input.name === "password"){
+      if (input.value.trim() === "") return "password is required"
+    }
+  
+  };
+
+  handleChange = ({ currentTarget : input}) => {
+    //const{ currentTarget : input} = e
+
+    const errors = {...this.state.errors};
+    const errorMessage = this.validateProperty(input);
+    console.log("valid", errorMessage);
+    console.log("input name",errors[input.name]);
+    if(errorMessage)  errors[input.name]= errorMessage ;
+    else delete errors[input.name];
+
     const account = { ...this.state.account };
-    account[e.currentTarget.name] = e.currentTarget.value;
-    this.setState({ account });
+    account[input.name] = input.value; 
+    this.setState({ account , errors});
   };
 
   render() {
-    const { account } = this.state;
-
+    const { account, errors } = this.state;
     return (
       <div>
         <h2>login form</h2>
@@ -52,12 +67,14 @@ class LoginForm extends Component {
             value={account.username}
             label="Username"
             onChange={this.handleChange}
+            error={errors.username}
           />
           <Input
             name="password"
             value={account.password}
             label="Password"
             onChange={this.handleChange}
+            error={errors.password}
           />
           <button className="btn btn-primary">Login</button>
         </form>
