@@ -1,30 +1,40 @@
 import React, { Component } from "react";
-
+import Input from "./Common/Input";
 class LoginForm extends Component {
   state = {
     account: { username: "", password: "" },
+    errors: {
+      // username: "username not found",
+      // password: "you should inter password",
+    },
   };
 
   username = React.createRef();
 
   componentDidMount() {
-    this.username.current.focus(); //this current refrences to ref in input tag//
+    // this.username.current.focus();
   }
+  validate = () => {
+    const errors = {};
+    const { account } = this.state;
+    if (account.username.trim() === "")
+      errors.username = "Username is required";
+    if (account.password.trim() === "")
+      errors.password = "Password is required";
 
+    return Object.keys(errors).length === 0 ? null : errors;
+  };
   handleSubmit = (e) => {
     e.preventDefault();
-    const uername = this.username.current.value;
     // call the server but here for example we use log
-    console.log("sssubmit");
+    // const uername = this.username.current.value;
+    const errors = this.validate();
+    console.log("erroes", errors);
+    this.setState({ errors });
+    if (errors) return;
   };
 
   handleChange = (e) => {
- 
-
-    console.log("e.currentTarget.name", e.currentTarget.name);
-    console.log("e.currentTarget.value", e.currentTarget.value);
-    console.log("e.currentTarget", e.currentTarget);
-    
     const account = { ...this.state.account };
     account[e.currentTarget.name] = e.currentTarget.value;
     this.setState({ account });
@@ -37,31 +47,18 @@ class LoginForm extends Component {
       <div>
         <h2>login form</h2>
         <form onSubmit={this.handleSubmit}>
-          <div className="form-group">
-            <label htmlFor="UserName">Username</label>
-            <input
-              value={account.username}
-              onChange={this.handleChange}
-              ref={this.username}
-              id="UserName"
-              name="username"
-              type="text"
-              className="form-control"
-            ></input>
-          </div>
-
-          <div className="form-group">
-            <label htmlFor="PassWord">Password</label>
-            <input
-              autoFocus
-              value={account.password}
-              onChange={this.handleChange}
-              id="PassWord"
-              name="password"
-              type="text"
-              className="form-control"
-            ></input>
-          </div>
+          <Input
+            name="username"
+            value={account.username}
+            label="Username"
+            onChange={this.handleChange}
+          />
+          <Input
+            name="password"
+            value={account.password}
+            label="Password"
+            onChange={this.handleChange}
+          />
           <button className="btn btn-primary">Login</button>
         </form>
       </div>
