@@ -5,7 +5,9 @@ import { getMovies } from "../services/fakeMovieService";
 import { getGenres } from "../services/fakeGenreService";
 import { paginate } from "../Utils/Paginate";
 import MoviesTable from "./MoviesTable";
-import _ from "lodash";
+import { Link } from "react-router-dom";
+import SearchBox from "./Common/SearchBox";
+import _, { identity } from "lodash";
 
 class Movies extends React.Component {
   state = {
@@ -13,8 +15,10 @@ class Movies extends React.Component {
     genres: [],
     pageSize: 4,
     currentPage: 1,
-    selectedGenre: getGenres(),
     sortColumn: { path: "title", order: "asc" },
+    selectedGenre: null,
+    searchQuery: "",
+    //selectedGenre: getGenres(),
   };
 
   componentDidMount() {
@@ -46,12 +50,17 @@ class Movies extends React.Component {
     );
   };
 
-  handleGenreSelect = (genre) => {
-    this.setState({ selectedGenre: genre, currentPage: 1 });
-  };
-
   handleSort = (sortColumn) => {
     this.setState({ sortColumn });
+  };
+
+  handleGenreSelect = (genre) => {
+    this.setState({ selectedGenre: genre, searchQuery: "", currentPage: 1 });
+  };
+
+  handleSearch = (query) => {
+    // the query that user type in the input//
+    this.setState({ searchQuery: query, selectedGenre: null, currentPage: 1 });
   };
 
   getpageData = () => {
@@ -61,12 +70,18 @@ class Movies extends React.Component {
       movies: allMovies,
       selectedGenre,
       sortColumn,
+      searchQuery
     } = this.state;
 
-    const filtered =
-      selectedGenre && selectedGenre._id //if both are truth then run rest of codes//
-        ? allMovies.filter((movie) => movie.genre._id === selectedGenre._id)
-        : allMovies;
+    let filtered = allMovies;
+    if (searchQuery)
+      filtered = allMovies.filter((m) =>
+        m.title.toLowerCase().startsWith(searchQuery.toLowerCase())
+      );
+    else if (selectedGenre && selectedGenre._id)
+      filtered = allMovies.filter(
+        (movie) => movie.genre._id === selectedGenre._id
+      );
 
     const sorted = _.orderBy(filtered, [sortColumn.path], [sortColumn.order]);
 
@@ -77,7 +92,7 @@ class Movies extends React.Component {
 
   render() {
     const { length: movieCount } = this.state.movies;
-    const { pageSize, currentPage, sortColumn } = this.state;
+    const { pageSize, currentPage, sortColumn ,searchQuery} = this.state;
 
     if (movieCount === 0) return <p>There is no movie in dataBase</p>;
 
@@ -94,7 +109,16 @@ class Movies extends React.Component {
         </div>
 
         <div className="col right">
+          <Link
+            to="/movies/new"
+            className="btn btn-primary"
+            style={{ marginBottom: 20 }}
+          >
+            New Movie
+          </Link>
+
           <p>There is {totalCount} Movies</p>
+          <SearchBox value={searchQuery} onChange={this.handleSearch} />
           <MoviesTable
             movies={movies}
             sortColumn={sortColumn}
